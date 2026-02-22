@@ -44,7 +44,8 @@ export default async function handler(req, res) {
       const { done, value } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value);
-      res.write(chunk);
+      //res.write(chunk);
+res.write(chunk + '\n');
     }
 
     res.end();
