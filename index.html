@@ -201,6 +201,7 @@
     </div>
 
     <script>
+        let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];//历史记录
         const chatArea = document.getElementById('chatArea');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
