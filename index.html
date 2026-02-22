@@ -189,9 +189,7 @@
         </div>
 
         <div class="chat-area" id="chatArea">
-            <div class="message bot-message">
-                君安。我是东方灵侍，愿为你温一盏茶，静听心事。
-            </div>
+    
         </div>
 
         <div class="input-area">
@@ -201,11 +199,12 @@
     </div>
 
     <script>
-        let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];//历史记录
+        //let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];//历史记录
         const chatArea = document.getElementById('chatArea');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
-        let conversationHistory = [];
+        //let conversationHistory = [];
+        let conversationHistory =JSON.parse(localStorage.getItem("conversationHistory")) || [];
 
         // 自动调整输入框高度
         userInput.addEventListener('input', () => {
@@ -232,7 +231,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userMessage: text,
-                        history: conversationHistory
+                        //history: conversationHistory
+                         history: conversationHistory.slice(-10)
                     })
                 });
 
@@ -281,6 +281,16 @@
                     { role: 'user', content: text },
                     { role: 'assistant', content: fullText }
                 );
+                
+                // 限制最多 200 条
+if (conversationHistory.length > 200) {
+    conversationHistory = conversationHistory.slice(-200);
+}
+
+localStorage.setItem(
+    "conversationHistory",
+    JSON.stringify(conversationHistory)
+);
 
             } catch (err) {
                 console.error(err);
@@ -308,6 +318,25 @@
             return div;
         }
 
+         window.onload = function () {
+    if (conversationHistory.length === 0) {
+        const welcome = "君安。我是东方灵侍，愿为你温一盏茶，静听心事。";
+        addMessage(welcome, "bot");
+        conversationHistory.push({
+            role: "assistant",
+            content: welcome
+        });
+        localStorage.setItem(
+            "conversationHistory",
+            JSON.stringify(conversationHistory)
+        );
+    } else {
+        conversationHistory.forEach(msg => {
+            const sender = msg.role === "assistant" ? "bot" : "user";
+            addMessage(msg.content, sender);
+        });
+    }
+};
         // 绑定事件
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keydown', (e) => {
