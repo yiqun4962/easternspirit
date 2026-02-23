@@ -229,11 +229,17 @@
                 const response = await fetch('/api/eastern-spirit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userMessage: text,
+                   // body: JSON.stringify({
+                   //     userMessage: text,
                         //history: conversationHistory
-                         history: conversationHistory.slice(-10)
-                    })
+                   //      history: conversationHistory.slice(-10)
+                   // })
+                    body: JSON.stringify({
+  userMessage,
+  history: conversationData.conversationHistory,
+  superStyleProfile: conversationData.superStyleProfile,
+  relationship: conversationData.relationship
+}
                 });
 
                 if (!response.ok) throw new Error('请求失败');
