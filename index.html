@@ -214,13 +214,21 @@
 
         // 发送消息
         async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+            //const text = userInput.value.trim();
+           // if (!text) return;
 
             // 添加用户消息
-            addMessage(text, 'user');
-            userInput.value = '';
-            userInput.style.height = 'auto';
+           // addMessage(text, 'user');
+          //  userInput.value = '';
+          //  userInput.style.height = 'auto';
+            const inputElement = document.getElementById("userInput");
+    const userMessage = inputElement.value.trim();
+
+    if (!userMessage) return;
+
+    analyzeUserStyle(userMessage);
+    updateRelationship(userMessage);
+
 
             // 显示“正在输入”
             const typingIndicator = addTypingIndicator();
