@@ -204,14 +204,71 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         //let conversationHistory = [];
-        let conversationHistory =JSON.parse(localStorage.getItem("conversationHistory")) || [];
-
+       // let conversationHistory =JSON.parse(localStorage.getItem("conversationHistory")) || [];
+        let conversationData = {
+    conversationHistory: conversationHistory,
+    superStyleProfile: {
+        dominance: 0,
+        emotional: 0,
+        rational: 0,
+        poetic: 0
+    },
+    relationship: {
+        intimacy: 0,
+        trust: 0,
+        depth: 0
+    }
+};
         // 自动调整输入框高度
         userInput.addEventListener('input', () => {
             userInput.style.height = 'auto';
             userInput.style.height = userInput.scrollHeight + 'px';
         });
+function analyzeUserStyle(message) {
 
+    if (!conversationData.superStyleProfile) {
+        conversationData.superStyleProfile = {
+            ambition: 0,
+            emotionalDepth: 0,
+            stability: 0,
+            dominance: 0,
+            curiosity: 0,
+            rationality: 0,
+            vulnerability: 0
+        };
+    }
+
+    const style = conversationData.superStyleProfile;
+    const text = message.toLowerCase();
+
+    if (/目标|计划|创业|赚钱|效率/.test(text)) {
+        style.ambition += 1;
+    }
+
+    if (/难受|压力|孤独|焦虑/.test(text)) {
+        style.emotionalDepth += 1;
+    }
+
+    localStorage.setItem("conversationData", JSON.stringify(conversationData));
+}
+
+        function updateRelationship(message) {
+
+    if (!conversationData.relationship) {
+        conversationData.relationship = {
+            intimacyScore: 0,
+            level: 1
+        };
+    }
+
+    conversationData.relationship.intimacyScore += 1;
+
+    if (conversationData.relationship.intimacyScore > 20) {
+        conversationData.relationship.level = 2;
+    }
+
+    localStorage.setItem("conversationData", JSON.stringify(conversationData));
+}
         // 发送消息
         async function sendMessage() {
             //const text = userInput.value.trim();
@@ -291,19 +348,19 @@
                 }
 
                 // 更新对话历史
-                conversationHistory.push(
+                conversationData.conversationHistory.push(
                     { role: 'user', content: text },
                     { role: 'assistant', content: fullText }
                 );
                 
                 // 限制最多 200 条
-if (conversationHistory.length > 200) {
-    conversationHistory = conversationHistory.slice(-200);
+if (conversationData.conversationHistory.length > 200) {
+   conversationData.conversationHistory = conversationData.conversationHistory.slice(-200);
 }
 
 localStorage.setItem(
-    "conversationHistory",
-    JSON.stringify(conversationHistory)
+    "conversationData.conversationHistory",
+    JSON.stringify(conversationData.conversationHistory)
 );
 
             } catch (err) {
@@ -333,19 +390,19 @@ localStorage.setItem(
         }
 
          window.onload = function () {
-    if (conversationHistory.length === 0) {
+    if (conversationData.conversationHistory.length === 0) {
         const welcome = "君安。我是东方灵侍，愿为你温一盏茶，静听心事。";
         addMessage(welcome, "bot");
-        conversationHistory.push({
+        conversationData.conversationHistory.push({
             role: "assistant",
             content: welcome
         });
         localStorage.setItem(
-            "conversationHistory",
-            JSON.stringify(conversationHistory)
+            "conversationData.conversationHistory",
+            JSON.stringify(conversationData.conversationHistory)
         );
     } else {
-        conversationHistory.forEach(msg => {
+        conversationData.conversationHistory.forEach(msg => {
             const sender = msg.role === "assistant" ? "bot" : "user";
             addMessage(msg.content, sender);
         });
