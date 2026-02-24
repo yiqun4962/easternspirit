@@ -197,252 +197,234 @@
             <button id="sendBtn">发送</button>
         </div>
     </div>
+<script>
 
-    <script>
-        //let chatHistory = JSON.parse(localStorage.getItem("chatHistory")) || [];//历史记录
-        const chatArea = document.getElementById('chatArea');
-        const userInput = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
-        //let conversationHistory = [];
-        //let conversationHistory =JSON.parse(localStorage.getItem("conversationHistory")) || [];
-      let conversationData =
+// ================= 初始化 =================
+let conversationData =
   JSON.parse(localStorage.getItem("conversationData")) || {
+
     conversationHistory: [],
-    memory: {
-      userName: ""
-    },
+    lastActiveTime: Date.now(),
+
     superStyleProfile: {
-      ambition: 0,
-  emotionalDepth: 0,
-  stability: 0,
-  dominance: 0,
-  curiosity: 0,
-  rationality: 0,
-  vulnerability: 0
+      dominance: 0,
+      emotionalDepth: 0,
+      rationality: 0,
+      ambition: 0
     },
+
     relationship: {
-      intimacy: 0,
-      trust: 0,
-      depth: 0
-    }
-  };
-        // 自动调整输入框高度
-        userInput.addEventListener('input', () => {
-            userInput.style.height = 'auto';
-            userInput.style.height = userInput.scrollHeight + 'px';
-        });
-function analyzeUserStyle(message) {
+      level: 1,
+      intimacyScore: 0
+    },
 
-    if (!conversationData.superStyleProfile) {
-        conversationData.superStyleProfile = {
-            ambition: 0,
-            emotionalDepth: 0,
-            stability: 0,
-            dominance: 0,
-            curiosity: 0,
-            rationality: 0,
-            vulnerability: 0
-        };
-    }
-
-    const style = conversationData.superStyleProfile;
-    const text = message.toLowerCase();
-
-    if (/目标|计划|创业|赚钱|效率/.test(text)) {
-        style.ambition += 1;
-    }
-
-    if (/难受|压力|孤独|焦虑/.test(text)) {
-        style.emotionalDepth += 1;
-    }
-
-localStorage.setItem(
-    "conversationData",
-    JSON.stringify(conversationData)
-);
-}
-
-        function updateRelationship(message) {
-
-    if (!conversationData.relationship) {
-        conversationData.relationship = {
-            intimacy: 0,
-            trust: 0,
-            depth: 0,
-            level: 1
-        };
-    }
-
-    conversationData.relationship.intimacyScore += 1;
-
-    if (conversationData.relationship.intimacyScore > 20) {
-        conversationData.relationship.level = 2;
-    }
-
-    localStorage.setItem("conversationData", JSON.stringify(conversationData));
-}
-        // 发送消息
-        async function sendMessage() {
-            //const text = userInput.value.trim();
-           // if (!text) return;
-
-            // 添加用户消息
-           // addMessage(text, 'user');
-          //  userInput.value = '';
-          //  userInput.style.height = 'auto';
-            const inputElement = document.getElementById("userInput");
-    const userMessage = inputElement.value.trim();
-
-    if (!userMessage) return;
-  // 立即显示用户消息
-    addMessage(userMessage, 'user');
-
-    // 清空输入框
-    inputElement.value = '';
-    inputElement.style.height = 'auto';
-
-    analyzeUserStyle(userMessage);
-    updateRelationship(userMessage);
-
-            // 自动识别名字
-const nameMatch = userMessage.match(/我叫(.+)|我是(.+)/);
-
-if (nameMatch) {
-    const name = nameMatch[1] || nameMatch[2];
-    conversationData.memory.userName = name;
-    localStorage.setItem("conversationData", JSON.stringify(conversationData));
-}
-
-            // 显示“正在输入”
-            const typingIndicator = addTypingIndicator();
-
-            try {
-                const response = await fetch('/api/eastern-spirit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                   // body: JSON.stringify({
-                   //     userMessage: text,
-                        //history: conversationHistory
-                   //      history: conversationHistory.slice(-10)
-                   // })
-                    body: JSON.stringify({
-  userMessage,
-  history: conversationData.conversationHistory.slice(-10),
-  superStyleProfile: conversationData.superStyleProfile,
-  relationship: conversationData.relationship,
-  memory: conversationData.memory
-})
-                }) 
-
-                if (!response.ok) throw new Error('请求失败');
-
-                // 处理流式响应
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let botMessageElement = null;
-                let fullText = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const data = line.slice(6);
-                            if (data === '[DONE]') continue;
-
-                            try {
-                                const parsed = JSON.parse(data);
-                                const content = parsed.choices?.[0]?.delta?.content || '';
-                                fullText += content;
-
-                                if (!botMessageElement) {
-                                    typingIndicator.remove();
-                                    botMessageElement = document.createElement('div');
-                                    botMessageElement.className = 'message bot-message';
-                                    chatArea.appendChild(botMessageElement);
-                                }
-                                botMessageElement.textContent = fullText;
-                                chatArea.scrollTop = chatArea.scrollHeight;
-                            } catch (e) {
-                                console.error('解析流数据失败', e);
-                            }
-                        }
-                    }
-                }
-
-                // 更新对话历史
-             conversationData.conversationHistory.push(
-    { role: 'user', content: userMessage },
-    { role: 'assistant', content: fullText }
-);
-                
-                // 限制最多 200 条
-if (conversationData.conversationHistory.length > 200) {
-   conversationData.conversationHistory = conversationData.conversationHistory.slice(-200);
-}
-
-localStorage.setItem(
-    "conversationData",
-    JSON.stringify(conversationData)
-);
-
-            } catch (err) {
-                console.error(err);
-                typingIndicator.remove();
-                addMessage('抱歉，暂时无法回应。', 'bot');
-            }
-        }
-
-        // 添加消息到界面
-        function addMessage(text, sender) {
-            const div = document.createElement('div');
-            div.className = `message ${sender}-message`;
-            div.textContent = text;
-            chatArea.appendChild(div);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        // 添加“正在输入”指示器
-        function addTypingIndicator() {
-            const div = document.createElement('div');
-            div.className = 'message bot-message typing';
-            div.innerHTML = '<span></span><span></span><span></span>';
-            chatArea.appendChild(div);
-            chatArea.scrollTop = chatArea.scrollHeight;
-            return div;
-        }
-
-         window.onload = function () {
-    if (conversationData.conversationHistory.length === 0) {
-        const welcome = "君安。我是东方灵侍，愿为你温一盏茶，静听心事。";
-        addMessage(welcome, "bot");
-        conversationData.conversationHistory.push({
-            role: "assistant",
-            content: welcome
-        });
-        localStorage.setItem(
-            "conversationData",
-            JSON.stringify(conversationData)
-        );
-    } else {
-        conversationData.conversationHistory.forEach(msg => {
-            const sender = msg.role === "assistant" ? "bot" : "user";
-            addMessage(msg.content, sender);
-        });
+    memory: {
+      userName: "",
+      profile: {},
+      longTermFacts: [],
+      emotionalPatterns: [],
+      goals: []
     }
 };
-        // 绑定事件
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-    </script>
-</body>
-</html>
+
+// ================= 工具函数 =================
+function saveData() {
+  localStorage.setItem("conversationData", JSON.stringify(conversationData));
+}
+
+function appendMessage(role, content) {
+  const chat = document.getElementById("chat");
+  const div = document.createElement("div");
+  div.className = role;
+  div.innerText = content;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// ================= 关系升级 =================
+function updateRelationship(userMessage) {
+
+  const rel = conversationData.relationship;
+
+  if (/孤独|想你|难受|压力|累|睡不着/.test(userMessage)) {
+    rel.intimacyScore += 2;
+  } else {
+    rel.intimacyScore += 1;
+  }
+
+  if (rel.level === 1 && rel.intimacyScore > 15) {
+    rel.level = 2;
+  }
+
+  if (rel.level === 2 && rel.intimacyScore > 40) {
+    rel.level = 3;
+  }
+}
+
+// ================= 主动触发时间 =================
+function getProactiveThreshold() {
+
+  const level = conversationData.relationship.level;
+
+  if (level === 1) return 12;
+  if (level === 2) return 8;
+  if (level === 3) return 4;
+
+  return 12;
+}
+
+// ================= 页面加载检测主动 =================
+window.onload = function () {
+
+  const now = Date.now();
+  const last = conversationData.lastActiveTime || 0;
+  const hours = (now - last) / (1000 * 60 * 60);
+
+  if (hours > getProactiveThreshold()) {
+    triggerProactiveMessage();
+  }
+};
+
+// ================= 主动消息 =================
+async function triggerProactiveMessage() {
+
+  const response = await fetch('/api/eastern-spirit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userMessage: "（主动开场）",
+      history: conversationData.conversationHistory,
+      superStyleProfile: conversationData.superStyleProfile,
+      relationship: conversationData.relationship,
+      memory: conversationData.memory,
+      triggerType: "proactive"
+    })
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  let fullText = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value);
+    fullText += chunk;
+  }
+
+  appendMessage("assistant", fullText);
+
+  conversationData.conversationHistory.push({
+    role: "assistant",
+    content: fullText
+  });
+
+  conversationData.lastActiveTime = Date.now();
+  saveData();
+}
+
+// ================= 记忆抽取 =================
+async function extractMemory(userMessage) {
+
+  if (userMessage.length < 20) return;
+
+  const response = await fetch('/api/eastern-spirit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userMessage,
+      triggerType: "memory"
+    })
+  });
+
+  const text = await response.text();
+
+  try {
+    const json = JSON.parse(text);
+    mergeMemory(json);
+  } catch (e) {
+    console.log("memory parse error");
+  }
+}
+
+// ================= 合并记忆 =================
+function mergeMemory(newMemory) {
+
+  if (newMemory.profile) {
+    Object.assign(conversationData.memory.profile, newMemory.profile);
+  }
+
+  if (Array.isArray(newMemory.goals)) {
+    conversationData.memory.goals.push(...newMemory.goals);
+  }
+
+  if (Array.isArray(newMemory.longTermFacts)) {
+    conversationData.memory.longTermFacts.push(...newMemory.longTermFacts);
+  }
+
+  if (Array.isArray(newMemory.emotionalPatterns)) {
+    conversationData.memory.emotionalPatterns.push(...newMemory.emotionalPatterns);
+  }
+
+  saveData();
+}
+
+// ================= 发送消息 =================
+async function sendMessage() {
+
+  const input = document.getElementById("userInput");
+  const userMessage = input.value.trim();
+  if (!userMessage) return;
+
+  appendMessage("user", userMessage);
+
+  conversationData.conversationHistory.push({
+    role: "user",
+    content: userMessage
+  });
+
+  input.value = "";
+
+  const response = await fetch('/api/eastern-spirit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userMessage,
+      history: conversationData.conversationHistory,
+      superStyleProfile: conversationData.superStyleProfile,
+      relationship: conversationData.relationship,
+      memory: conversationData.memory,
+      triggerType: "normal"
+    })
+  });
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  let fullText = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value);
+    fullText += chunk;
+  }
+
+  appendMessage("assistant", fullText);
+
+  conversationData.conversationHistory.push({
+    role: "assistant",
+    content: fullText
+  });
+
+  // ===== 更新系统状态 =====
+  conversationData.lastActiveTime = Date.now();
+  updateRelationship(userMessage);
+  extractMemory(userMessage);
+
+  saveData();
+}
+
+</script>
+    
