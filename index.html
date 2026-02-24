@@ -249,7 +249,10 @@ function analyzeUserStyle(message) {
         style.emotionalDepth += 1;
     }
 
-    localStorage.setItem("conversationData", JSON.stringify(conversationData));
+localStorage.setItem(
+    "conversationData",
+    JSON.stringify(conversationData)
+);
 }
 
         function updateRelationship(message) {
@@ -307,7 +310,7 @@ function analyzeUserStyle(message) {
                    // })
                     body: JSON.stringify({
   userMessage,
-  history: conversationData.conversationHistory,
+  history: conversationData.conversationHistory.slice(-10),
   superStyleProfile: conversationData.superStyleProfile,
   relationship: conversationData.relationship
                 })
@@ -354,10 +357,10 @@ function analyzeUserStyle(message) {
                 }
 
                 // 更新对话历史
-                conversationData.conversationHistory.push(
-                    { role: 'user', content: text },
-                    { role: 'assistant', content: fullText }
-                );
+             conversationData.conversationHistory.push(
+    { role: 'user', content: userMessage },
+    { role: 'assistant', content: fullText }
+);
                 
                 // 限制最多 200 条
 if (conversationData.conversationHistory.length > 200) {
@@ -404,8 +407,8 @@ localStorage.setItem(
             content: welcome
         });
         localStorage.setItem(
-            "conversationData.conversationHistory",
-            JSON.stringify(conversationData.conversationHistory)
+            "conversationData",
+            JSON.stringify(conversationData)
         );
     } else {
         conversationData.conversationHistory.forEach(msg => {
