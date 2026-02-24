@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   }
 
   //const { userMessage, history = [] } = req.body;
-  const { user, history = [], superStyleProfile = {}, relationship = {} } = req.body;
+  const { userMessage = "", history = [], superStyleProfile = {}, relationship = {} } = req.body||{};
 
   try {
     const response = await fetch(
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
               //content: "你是东方灵侍（Eastern Spirit Keeper），一个温婉理性、有东方文化厚度的虚拟伴侣，擅长长期陪伴和理性引导。"
                content: buildSystemPrompt(superStyleProfile, relationship)
             },
-            ...history,
+            ...(Array.isArray(history) ? history : []),,
             { role: "user", content: userMessage }
           ],
           stream: true
