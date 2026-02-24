@@ -204,21 +204,28 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
         //let conversationHistory = [];
-        let conversationHistory =JSON.parse(localStorage.getItem("conversationHistory")) || [];
-        let conversationData = {
-    conversationHistory: conversationHistory,
+        //let conversationHistory =JSON.parse(localStorage.getItem("conversationHistory")) || [];
+      let conversationData =
+  JSON.parse(localStorage.getItem("conversationData")) || {
+    conversationHistory: [],
+    memory: {
+      userName: ""
+    },
     superStyleProfile: {
-        dominance: 0,
-        emotional: 0,
-        rational: 0,
-        poetic: 0
+      ambition: 0,
+  emotionalDepth: 0,
+  stability: 0,
+  dominance: 0,
+  curiosity: 0,
+  rationality: 0,
+  vulnerability: 0
     },
     relationship: {
-        intimacy: 0,
-        trust: 0,
-        depth: 0
+      intimacy: 0,
+      trust: 0,
+      depth: 0
     }
-};
+  };
         // 自动调整输入框高度
         userInput.addEventListener('input', () => {
             userInput.style.height = 'auto';
@@ -259,7 +266,9 @@ localStorage.setItem(
 
     if (!conversationData.relationship) {
         conversationData.relationship = {
-            intimacyScore: 0,
+            intimacy: 0,
+            trust: 0,
+            depth: 0,
             level: 1
         };
     }
@@ -295,6 +304,14 @@ localStorage.setItem(
     analyzeUserStyle(userMessage);
     updateRelationship(userMessage);
 
+            // 自动识别名字
+const nameMatch = userMessage.match(/我叫(.+)|我是(.+)/);
+
+if (nameMatch) {
+    const name = nameMatch[1] || nameMatch[2];
+    conversationData.memory.userName = name;
+    localStorage.setItem("conversationData", JSON.stringify(conversationData));
+}
 
             // 显示“正在输入”
             const typingIndicator = addTypingIndicator();
@@ -312,8 +329,9 @@ localStorage.setItem(
   userMessage,
   history: conversationData.conversationHistory.slice(-10),
   superStyleProfile: conversationData.superStyleProfile,
-  relationship: conversationData.relationship
-                })
+  relationship: conversationData.relationship,
+  memory: conversationData.memory
+})
                 }) 
 
                 if (!response.ok) throw new Error('请求失败');
@@ -368,8 +386,8 @@ if (conversationData.conversationHistory.length > 200) {
 }
 
 localStorage.setItem(
-    "conversationData.conversationHistory",
-    JSON.stringify(conversationData.conversationHistory)
+    "conversationData",
+    JSON.stringify(conversationData)
 );
 
             } catch (err) {
