@@ -113,8 +113,10 @@ export default async function handler(req, res) {
     );
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
+  const errorText = await response.text();
+  console.log("ARK ERROR:", errorText);
+  return res.status(response.status).send(errorText);
+}
 
     // memory 模式直接返回文本
     if (triggerType === "memory") {
