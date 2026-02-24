@@ -53,7 +53,7 @@ export default async function handler(req, res) {
               //content: "你是东方灵侍（Eastern Spirit Keeper），一个温婉理性、有东方文化厚度的虚拟伴侣，擅长长期陪伴和理性引导。"
                content: buildSystemPrompt(superStyleProfile, relationship)
             },
-            ...(Array.isArray(history) ? history : []),,
+            ...(Array.isArray(history) ? history : []),
             { role: "user", content: userMessage }
           ],
           stream: true
