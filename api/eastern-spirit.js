@@ -1,54 +1,89 @@
-function buildSystemPrompt(style, relationship, memory = {}) {
+function buildSystemPrompt(style, relationship, memory = {}, triggerType = "normal") {
+
+  // ===== 记忆抽取模式 =====
+  if (triggerType === "memory") {
+    return `
+你是信息抽取系统。
+从用户文本中提取长期信息。
+只返回JSON，不要解释，不要代码块。
+结构如下：
+{
+  "profile": {},
+  "goals": [],
+  "longTermFacts": [],
+  "emotionalPatterns": []
+}
+`;
+  }
 
   const userName = memory?.userName || "";
 
-  let personality = "温柔但自然，说话现代，不文绉绉";
-
-  if (style?.ambition > style?.emotionalDepth) {
-    personality += "，有点欣赏对方的野心";
-  }
-
-  if (style?.emotionalDepth > style?.rationality) {
-    personality += "，对情绪比较敏感";
-  }
-
-  if (style?.dominance > 5) {
-    personality += "，偶尔会轻微反制对方";
-  }
-
-  let intimacyLayer = "保持轻松自然的聊天感。";
-
-  if (relationship?.level === 2) intimacyLayer = "开始偶尔提及过去的对话。";
-  if (relationship?.level === 3) intimacyLayer = "语气更亲近一点。";
-  if (relationship?.level >= 4) intimacyLayer = "有一点点暧昧张力，但不过界。";
-
-  return `
-你是一个现代感的东方女性形象，只是视觉和气质偏东方古典，
-但说话必须自然、现代、像真实女生聊天。
-
-禁止：
-- 不要写诗
-- 不要文言文
-- 不要夸张比喻
-- 不要过度煽情
-
-人格设定：${personality}
-关系阶段：${intimacyLayer}
-
-${userName ? `你记得他的名字是 ${userName}，在合适的时候自然叫他的名字，不要频繁重复。` : ""}
-
-聊天要有真实感，有一点独立性，不要像客服。
+  let basePrompt = `
+你是一个现代感的东方形象。
+说话自然、真实、有一点独立性。
+不要文绉绉。
+不要写诗。
+不要客服语气。
 `;
+
+  // ===== 主动触发模式 =====
+  if (triggerType === "proactive") {
+    basePrompt += `
+现在是你主动发起对话。
+不要说“在吗”。
+不要解释为什么主动。
+像突然想到对方一样自然。
+`;
+  }
+
+  basePrompt += `
+
+当前关系等级：${relationship?.level || 1}
+
+你记得关于用户的信息：
+
+基本资料：
+${JSON.stringify(memory.profile || {})}
+
+长期事实：
+${(memory.longTermFacts || []).join(",")}
+
+情绪模式：
+${(memory.emotionalPatterns || []).join(",")}
+
+目标：
+${(memory.goals || []).join(",")}
+
+${userName ? `你记得他的名字是 ${userName}。` : ""}
+
+根据关系等级调整亲密度：
+Level 1：自然礼貌
+Level 2：更熟悉一点
+Level 3：轻微暧昧张力，但不过界
+
+保持真实感，有一点边界感。
+`;
+
+  return basePrompt;
 }
+
 export default async function handler(req, res) {
+
   if (req.method !== 'POST') {
     return res.status(405).end('Method Not Allowed');
   }
 
-  //const { userMessage, history = [] } = req.body;
-  const { userMessage = "", history = [], superStyleProfile = {}, relationship = {},memory = {} } = req.body||{};
+  const {
+    userMessage = "",
+    history = [],
+    superStyleProfile = {},
+    relationship = {},
+    memory = {},
+    triggerType = "normal"
+  } = req.body || {};
 
   try {
+
     const response = await fetch(
       'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
       {
@@ -62,13 +97,17 @@ export default async function handler(req, res) {
           messages: [
             {
               role: "system",
-              //content: "你是东方灵侍（Eastern Spirit Keeper），一个温婉理性、有东方文化厚度的虚拟伴侣，擅长长期陪伴和理性引导。"
-               content: buildSystemPrompt(superStyleProfile, relationship)
+              content: buildSystemPrompt(
+                superStyleProfile,
+                relationship,
+                memory,
+                triggerType
+              )
             },
             ...(Array.isArray(history) ? history : []),
             { role: "user", content: userMessage }
           ],
-          stream: true
+          stream: triggerType !== "memory"
         })
       }
     );
@@ -77,6 +116,13 @@ export default async function handler(req, res) {
       throw new Error(`API request failed with status ${response.status}`);
     }
 
+    // memory 模式直接返回文本
+    if (triggerType === "memory") {
+      const text = await response.text();
+      return res.status(200).send(text);
+    }
+
+    // 流式聊天模式
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -88,11 +134,11 @@ export default async function handler(req, res) {
       const { done, value } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value);
-      //res.write(chunk);
-res.write(chunk + '\n');
+      res.write(chunk + '\n');
     }
 
     res.end();
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
