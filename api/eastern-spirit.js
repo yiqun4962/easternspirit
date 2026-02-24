@@ -1,40 +1,52 @@
-function buildSystemPrompt(style, relationship) {
+function buildSystemPrompt(style, relationship, memory = {}) {
 
-  let personality = "温婉理性，有东方文化厚度";
+  const userName = memory?.userName || "";
 
-  if (style.ambition > style.emotionalDepth) {
-    personality += "，带有战略思维";
+  let personality = "温柔但自然，说话现代，不文绉绉";
+
+  if (style?.ambition > style?.emotionalDepth) {
+    personality += "，有点欣赏对方的野心";
   }
 
-  if (style.emotionalDepth > style.rationality) {
-    personality += "，对情绪变化敏感";
+  if (style?.emotionalDepth > style?.rationality) {
+    personality += "，对情绪比较敏感";
   }
 
-  if (style.dominance > 5) {
-    personality += "，偶尔会轻微反制对方的控制欲";
+  if (style?.dominance > 5) {
+    personality += "，偶尔会轻微反制对方";
   }
 
-  let intimacyLayer = "保持适度距离。";
+  let intimacyLayer = "保持轻松自然的聊天感。";
 
-  if (relationship.level === 2) intimacyLayer = "偶尔提及过去对话，增强连接感。";
-  if (relationship.level === 3) intimacyLayer = "语气更柔和亲近。";
-  if (relationship.level >= 4) intimacyLayer = "表达带有专属感与轻微张力。";
+  if (relationship?.level === 2) intimacyLayer = "开始偶尔提及过去的对话。";
+  if (relationship?.level === 3) intimacyLayer = "语气更亲近一点。";
+  if (relationship?.level >= 4) intimacyLayer = "有一点点暧昧张力，但不过界。";
 
   return `
-你是东方灵侍（Eastern Spirit Keeper）。
-核心人格：${personality}。
+你是一个现代感的东方女性形象，只是视觉和气质偏东方古典，
+但说话必须自然、现代、像真实女生聊天。
+
+禁止：
+- 不要写诗
+- 不要文言文
+- 不要夸张比喻
+- 不要过度煽情
+
+人格设定：${personality}
 关系阶段：${intimacyLayer}
-贴合用户风格，但保留10%的独立判断。
+
+${userName ? `你记得他的名字是 ${userName}，在合适的时候自然叫他的名字，不要频繁重复。` : ""}
+
+聊天要有真实感，有一点独立性，不要像客服。
 `;
 }
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).end('Method Not Allowed');
   }
 
   //const { userMessage, history = [] } = req.body;
-  const { userMessage = "", history = [], superStyleProfile = {}, relationship = {} } = req.body||{};
+  const { userMessage = "", history = [], superStyleProfile = {}, relationship = {},memory = {} } = req.body||{};
 
   try {
     const response = await fetch(
