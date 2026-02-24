@@ -282,6 +282,12 @@ function analyzeUserStyle(message) {
     const userMessage = inputElement.value.trim();
 
     if (!userMessage) return;
+  // 立即显示用户消息
+    addMessage(userMessage, 'user');
+
+    // 清空输入框
+    inputElement.value = '';
+    inputElement.style.height = 'auto';
 
     analyzeUserStyle(userMessage);
     updateRelationship(userMessage);
