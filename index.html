@@ -21,8 +21,10 @@
         .header {
             padding:1.2rem 1.5rem; border-bottom:1px solid #e0dcd2;
             background:linear-gradient(135deg,#f0ede6 0%,#f7f5f0 100%);
-            display:flex; align-items:center; gap:1rem;
+            display:flex; align-items:center; justify-content:space-between;
+            gap:1rem;
         }
+        .header-left { display:flex; align-items:center; gap:1rem; }
         .avatar {
             width:48px; height:48px; border-radius:50%;
             background:#d4c9b8; display:flex; align-items:center; justify-content:center;
@@ -30,6 +32,43 @@
         }
         .title { font-size:1.3rem; font-weight:500; color:#4a4a4a; letter-spacing:0.05em; }
         .subtitle { font-size:0.85rem; color:#888; font-style:italic; }
+        /* 记忆面板按钮样式 */
+        .mem-btn {
+            padding:6px 12px; border-radius:12px; border:none;
+            background:#6b5d4f; color:#fff; font-size:12px;
+            cursor:pointer; transition:all 0.2s;
+        }
+        .mem-btn:hover { background:#5a4e42; }
+
+        /* 记忆面板样式 */
+        .memory-panel {
+            position:fixed; top:0; left:0; right:0; bottom:0;
+            background:rgba(0,0,0,0.5); z-index:999;
+            display:none; align-items:center; justify-content:center;
+            padding:20px;
+        }
+        .mem-content {
+            background:#fff; border-radius:16px; padding:20px;
+            max-width:500px; width:100%; max-height:80vh;
+            overflow-y:auto; border:1px solid #e0dcd2;
+        }
+        .mem-title {
+            font-size:18px; font-weight:500; color:#4a4a4a;
+            margin-bottom:15px; padding-bottom:10px;
+            border-bottom:1px solid #e0dcd2;
+            text-align:center;
+        }
+        .mem-item {
+            margin-bottom:10px; padding:8px;
+            background:#f7f5f0; border-radius:8px;
+        }
+        .mem-label { font-weight:500; color:#6b5d4f; margin-right:8px; }
+        .mem-close {
+            display:block; width:100%; padding:8px;
+            margin-top:20px; border:none; border-radius:8px;
+            background:#6b5d4f; color:#fff; cursor:pointer;
+        }
+
         .chat-area {
             flex:1; overflow-y:auto; padding:1.5rem;
             display:flex; flex-direction:column; gap:1.5rem;
@@ -70,21 +109,36 @@
 <body>
 <div class="container">
     <div class="header">
-        <div class="avatar">灵</div>
-        <div>
-            <div class="title">东方灵侍</div>
-            <div class="subtitle">Eastern Spirit Keeper</div>
+        <div class="header-left">
+            <div class="avatar">灵</div>
+            <div>
+                <div class="title">东方灵侍</div>
+                <div class="subtitle">Eastern Spirit Keeper</div>
+            </div>
         </div>
+        <!-- 记忆面板按钮 -->
+        <button class="mem-btn" onclick="toggleMemoryPanel()">📋 我的记忆档案</button>
     </div>
+
     <div class="chat-area" id="chatArea"></div>
+
     <div class="input-area">
         <textarea id="userInput" placeholder="与灵侍对语..." rows="1"></textarea>
         <button id="sendBtn" onclick="sendMessage()">发送</button>
     </div>
 </div>
 
+<!-- 记忆面板弹窗 -->
+<div class="memory-panel" id="memoryPanel">
+    <div class="mem-content">
+        <div class="mem-title">灵侍的专属记忆档案</div>
+        <div id="memoryContent"></div>
+        <button class="mem-close" onclick="toggleMemoryPanel()">关闭</button>
+    </div>
+</div>
+
 <script>
-// ====================== 全自动记忆系统（初始全空）======================
+// ====================== 全局状态（修复版）======================
 let memorySystem = JSON.parse(localStorage.getItem("mySpiritMemory")) || {
   userName: "",
   userAge: "",
@@ -106,14 +160,41 @@ let relationship = JSON.parse(localStorage.getItem("mySpiritRelationship")) || {
 
 let chatHistory = JSON.parse(localStorage.getItem("mySpiritHistory")) || [];
 
-// 保存到本地
+// 保存到本地（核心：深拷贝，避免引用问题）
 function saveAll() {
-  localStorage.setItem("mySpiritMemory", JSON.stringify(memorySystem));
-  localStorage.setItem("mySpiritRelationship", JSON.stringify(relationship));
-  localStorage.setItem("mySpiritHistory", JSON.stringify(chatHistory));
+  localStorage.setItem("mySpiritMemory", JSON.stringify({...memorySystem}));
+  localStorage.setItem("mySpiritRelationship", JSON.stringify({...relationship}));
+  localStorage.setItem("mySpiritHistory", JSON.stringify([...chatHistory]));
+  console.log("✅ 所有数据已持久化保存");
 }
 
-// 插入消息
+// ====================== 记忆面板核心逻辑 ======================
+function toggleMemoryPanel() {
+  const panel = document.getElementById("memoryPanel");
+  panel.style.display = panel.style.display === "flex" ? "none" : "flex";
+  renderMemoryPanel();
+}
+
+function renderMemoryPanel() {
+  const content = document.getElementById("memoryContent");
+  // 格式化记忆数据，空值显示“未记录”
+  const mem = memorySystem;
+  let html = `
+    <div class="mem-item"><span class="mem-label">姓名：</span>${mem.userName || "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">年龄：</span>${mem.userAge || "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">城市：</span>${mem.userCity || "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">职业：</span>${mem.userJob || "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">感情状态：</span>${mem.userStatus || "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">性格特点：</span>${mem.userTraits.length > 0 ? mem.userTraits.join("、") : "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">兴趣喜好：</span>${mem.userPreferences.length > 0 ? mem.userPreferences.join("、") : "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">压力烦恼：</span>${mem.userPainPoints.length > 0 ? mem.userPainPoints.join("、") : "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">目标计划：</span>${mem.userGoals.length > 0 ? mem.userGoals.join("、") : "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">关键经历：</span>${mem.userKeyFacts.length > 0 ? mem.userKeyFacts.join("、") : "未记录"}</div>
+  `;
+  content.innerHTML = html;
+}
+
+// ====================== 聊天基础逻辑 ======================
 function appendMessage(role, text) {
   const area = document.getElementById("chatArea");
   const div = document.createElement("div");
@@ -123,7 +204,6 @@ function appendMessage(role, text) {
   area.scrollTop = area.scrollHeight;
 }
 
-// 正在输入
 function showTyping() {
   const area = document.getElementById("chatArea");
   const t = document.createElement("div");
@@ -133,7 +213,7 @@ function showTyping() {
   return t;
 }
 
-// ====================== 主动消息 ======================
+// ====================== 主动消息逻辑 ======================
 function shouldSendProactive() {
   const now = Date.now();
   const gapHour = (now - relationship.lastChatTime) / (1000 * 60 * 60);
@@ -162,72 +242,89 @@ async function proactiveMessage() {
     saveAll();
   } catch (e) {
     tip.remove();
+    console.error("主动消息失败：", e);
   }
 }
 
-// ====================== 自动提取记忆 ======================
-async function extractAndSaveMemory(userText) {
-  try {
-    const res = await fetch("/api/eastern-spirit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userMessage: userText,
-        memorySystem,
-        mode: "extract"
-      })
-    });
-    const updated = await res.json();
-    if (updated.memorySystem) {
-      memorySystem = updated.memorySystem;
-      saveAll();
-    }
-  } catch (e) {}
-}
-
-// ====================== 发送消息 ======================
+// ====================== 修复版发送消息（核心：先存记忆再聊天）=====================
 async function sendMessage() {
   const ipt = document.getElementById("userInput");
   const text = ipt.value.trim();
   if (!text) return;
 
+  // 1. 显示用户消息
   appendMessage("user", text);
   ipt.value = "";
-  const tip = showTyping();
+  const typingTip = showTyping();
 
+  // 2. 先更新基础状态并保存
   chatHistory.push({ role: "user", content: text });
   relationship.lastChatTime = Date.now();
   saveAll();
 
-  extractAndSaveMemory(text);
-
   try {
-    const res = await fetch("/api/eastern-spirit", {
+    // 3. 第一步：优先抽取记忆（确保新信息被保存）
+    console.log("🔄 正在提取记忆...");
+    const extractRes = await fetch("/api/eastern-spirit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         userMessage: text,
-        chatHistory,
-        memorySystem,
-        relationship,
+        memorySystem: {...memorySystem}, // 传副本，避免修改中冲突
+        mode: "extract"
+      })
+    });
+
+    if (extractRes.ok) {
+      const updatedData = await extractRes.json();
+      if (updatedData.memorySystem) {
+        // 深度替换，确保本地记忆完全更新
+        memorySystem = JSON.parse(JSON.stringify(updatedData.memorySystem));
+        saveAll(); // 提取后立即保存
+        console.log("✅ 记忆提取成功：", memorySystem);
+      }
+    } else {
+      console.error("记忆提取失败，状态码：", extractRes.status);
+    }
+
+    // 4. 第二步：用最新记忆生成回复
+    console.log("🔄 正在生成回复...");
+    const chatRes = await fetch("/api/eastern-spirit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userMessage: text,
+        chatHistory: [...chatHistory],
+        memorySystem: {...memorySystem}, // 传最新记忆
+        relationship: {...relationship},
         mode: "chat"
       })
     });
-    const data = await res.json();
-    tip.remove();
-    appendMessage("bot", data.reply);
-    chatHistory.push({ role: "bot", content: data.reply });
+
+    const chatData = await chatRes.json();
+    typingTip.remove();
+    const reply = chatData.reply || "我在呢。";
+    appendMessage("bot", reply);
+
+    // 5. 最后更新聊天历史并保存
+    chatHistory.push({ role: "bot", content: reply });
     saveAll();
+
   } catch (e) {
-    tip.remove();
-    appendMessage("bot", "我在呢。");
+    typingTip.remove();
+    appendMessage("bot", "抱歉，刚才有点走神了。");
+    console.error("发送消息核心错误：", e);
   }
 }
 
-// 页面加载
+// ====================== 页面初始化 ======================
 window.onload = () => {
+  // 恢复历史聊天
   chatHistory.forEach(msg => appendMessage(msg.role, msg.content));
+  // 检查主动消息
   if (shouldSendProactive()) proactiveMessage();
+  // 打印初始记忆，方便调试
+  console.log("📄 初始记忆加载：", memorySystem);
 };
 </script>
 </body>
