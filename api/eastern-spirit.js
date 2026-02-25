@@ -85,7 +85,7 @@ export default async function handler(req, res) {
   try {
 
     const response = await fetch(
-      'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+      'https://ark.cn-beijing.volces.com/api/v3/responses',
       {
         method: 'POST',
         headers: {
