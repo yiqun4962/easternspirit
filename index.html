@@ -5,477 +5,230 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>东方灵侍 · Eastern Spirit Keeper</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: "PingFang SC", "Microsoft YaHei", serif;
-            background: #f7f5f0;
-            color: #2c2c2c;
-            line-height: 1.6;
+            font-family: "PingFang SC","Microsoft YaHei",serif;
+            background:#f7f5f0; color:#2c2c2c; line-height:1.6;
             background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
         }
-
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid #e0dcd2;
-            border-right: 1px solid #e0dcd2;
-            background: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.05);
+            max-width:800px; margin:0 auto; height:100vh;
+            display:flex; flex-direction:column;
+            border-left:1px solid #e0dcd2; border-right:1px solid #e0dcd2;
+            background:rgba(255,255,255,0.85);
+            box-shadow:0 0 30px rgba(0,0,0,0.05);
         }
-
         .header {
-            padding: 1.2rem 1.5rem;
-            border-bottom: 1px solid #e0dcd2;
-            background: linear-gradient(135deg, #f0ede6 0%, #f7f5f0 100%);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            padding:1.2rem 1.5rem; border-bottom:1px solid #e0dcd2;
+            background:linear-gradient(135deg,#f0ede6 0%,#f7f5f0 100%);
+            display:flex; align-items:center; gap:1rem;
         }
-
         .avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #d4c9b8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #6b5d4f;
-            border: 2px solid #c2b7a6;
+            width:48px; height:48px; border-radius:50%;
+            background:#d4c9b8; display:flex; align-items:center; justify-content:center;
+            font-size:24px; color:#6b5d4f; border:2px solid #c2b7a6;
         }
-
-        .title {
-            font-size: 1.3rem;
-            font-weight: 500;
-            color: #4a4a4a;
-            letter-spacing: 0.05em;
-        }
-
-        .subtitle {
-            font-size: 0.85rem;
-            color: #888;
-            font-style: italic;
-        }
-
+        .title { font-size:1.3rem; font-weight:500; color:#4a4a4a; letter-spacing:0.05em; }
+        .subtitle { font-size:0.85rem; color:#888; font-style:italic; }
         .chat-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            flex:1; overflow-y:auto; padding:1.5rem;
+            display:flex; flex-direction:column; gap:1.5rem;
         }
-
         .message {
-            max-width: 75%;
-            padding: 0.8rem 1.2rem;
-            border-radius: 18px;
-            position: relative;
-            animation: fadeIn 0.3s ease-out;
+            max-width:75%; padding:0.8rem 1.2rem; border-radius:18px;
+            position:relative; animation:fadeIn 0.3s ease-out;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #6b5d4f 0%, #5a4e42 100%);
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        .bot-message {
-            align-self: flex-start;
-            background: #f0ede6;
-            color: #2c2c2c;
-            border-bottom-left-radius: 4px;
-            border: 1px solid #e0dcd2;
-        }
-
-        .input-area {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e0dcd2;
-            background: #fff;
-            display: flex;
-            gap: 0.8rem;
-            align-items: flex-end;
-        }
-
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
+        .user-message { align-self:flex-end; background:linear-gradient(135deg,#6b5d4f 0%,#5a4e42 100%); color:#fff; border-bottom-right-radius:4px; }
+        .bot-message { align-self:flex-start; background:#f0ede6; color:#2c2c2c; border-bottom-left-radius:4px; border:1px solid #e0dcd2; }
+        .input-area { padding:1rem 1.5rem; border-top:1px solid #e0dcd2; background:#fff; display:flex; gap:0.8rem; align-items:flex-end; }
         #userInput {
-            flex: 1;
-            padding: 0.8rem 1.2rem;
-            border: 1px solid #e0dcd2;
-            border-radius: 24px;
-            font-family: inherit;
-            font-size: 1rem;
-            resize: none;
-            outline: none;
-            background: #faf9f6;
-            transition: all 0.2s;
+            flex:1; padding:0.8rem 1.2rem; border:1px solid #e0dcd2; border-radius:24px;
+            font-family:inherit; font-size:1rem; resize:none; outline:none;
+            background:#faf9f6; transition:all 0.2s;
         }
-
-        #userInput:focus {
-            border-color: #c2b7a6;
-            background: #fff;
-        }
-
+        #userInput:focus { border-color:#c2b7a6; background:#fff; }
         #sendBtn {
-            padding: 0.8rem 1.6rem;
-            border: none;
-            border-radius: 24px;
-            background: linear-gradient(135deg, #6b5d4f 0%, #5a4e42 100%);
-            color: #fff;
-            font-family: inherit;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding:0.8rem 1.6rem; border:none; border-radius:24px;
+            background:linear-gradient(135deg,#6b5d4f 0%,#5a4e42 100%);
+            color:#fff; font-family:inherit; font-size:1rem; cursor:pointer;
+            transition:all 0.2s;
         }
-
-        #sendBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(107, 93, 79, 0.3);
-        }
-
-        #sendBtn:active {
-            transform: translateY(0);
-        }
-
-        .typing {
-            display: inline-block;
-            width: 40px;
-            height: 16px;
-            position: relative;
-        }
-
+        #sendBtn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(107,93,79,0.3); }
+        #sendBtn:active { transform:translateY(0); }
+        .typing { display:inline-block; width:40px; height:16px; position:relative; }
         .typing span {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #888;
-            animation: typing 1.4s infinite both;
+            position:absolute; width:6px; height:6px; border-radius:50%;
+            background:#888; animation:typing 1.4s infinite both;
         }
-
-        .typing span:nth-child(1) { left: 0; animation-delay: -0.32s; }
-        .typing span:nth-child(2) { left: 12px; animation-delay: -0.16s; }
-        .typing span:nth-child(3) { left: 24px; animation-delay: 0s; }
-
-        @keyframes typing {
-            0% { transform: scale(0); }
-            50% { transform: scale(1); }
-            100% { transform: scale(0); }
-        }
+        .typing span:nth-child(1){left:0;animation-delay:-0.32s;}
+        .typing span:nth-child(2){left:12px;animation-delay:-0.16s;}
+        .typing span:nth-child(3){left:24px;animation-delay:0s;}
+        @keyframes typing { 0%{transform:scale(0);}50%{transform:scale(1);}100%{transform:scale(0);} }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="avatar">灵</div>
-            <div>
-                <div class="title">东方灵侍</div>
-                <div class="subtitle">Eastern Spirit Keeper</div>
-            </div>
-        </div>
-
-        <div class="chat-area" id="chatArea">
-    
-        </div>
-<div id="chatBox" style="
-    height: 400px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin-bottom: 10px;
-"></div>
-        <div class="input-area">
-            <textarea id="userInput" placeholder="与灵侍对语..." rows="1"></textarea>
-            <button id="sendBtn" onclick="sendMessage()">发送</button>
+<div class="container">
+    <div class="header">
+        <div class="avatar">灵</div>
+        <div>
+            <div class="title">东方灵侍</div>
+            <div class="subtitle">Eastern Spirit Keeper</div>
         </div>
     </div>
+    <div class="chat-area" id="chatArea"></div>
+    <div class="input-area">
+        <textarea id="userInput" placeholder="与灵侍对语..." rows="1"></textarea>
+        <button id="sendBtn" onclick="sendMessage()">发送</button>
+    </div>
+</div>
+
 <script>
-
-// ================= 初始化 =================
-let conversationData =
-  JSON.parse(localStorage.getItem("conversationData")) || {
-
-    conversationHistory: [],
-    lastActiveTime: Date.now(),
-
-    superStyleProfile: {
-      dominance: 0,
-      emotionalDepth: 0,
-      rationality: 0,
-      ambition: 0
-    },
-
-    relationship: {
-      level: 1,
-      intimacyScore: 0
-    },
-
-    memory: {
-      userName: "",
-      profile: {},
-      longTermFacts: [],
-      emotionalPatterns: [],
-      goals: []
-    }
+// ====================== 全自动记忆系统（初始全空）======================
+let memorySystem = JSON.parse(localStorage.getItem("mySpiritMemory")) || {
+  userName: "",
+  userAge: "",
+  userCity: "",
+  userJob: "",
+  userStatus: "",
+  userTraits: [],
+  userPreferences: [],
+  userPainPoints: [],
+  userGoals: [],
+  userKeyFacts: []
 };
 
-// ================= 工具函数 =================
-function saveData() {
-  localStorage.setItem("conversationData", JSON.stringify(conversationData));
+let relationship = JSON.parse(localStorage.getItem("mySpiritRelationship")) || {
+  level: 1,
+  intimacy: 0,
+  lastChatTime: Date.now()
+};
+
+let chatHistory = JSON.parse(localStorage.getItem("mySpiritHistory")) || [];
+
+// 保存到本地
+function saveAll() {
+  localStorage.setItem("mySpiritMemory", JSON.stringify(memorySystem));
+  localStorage.setItem("mySpiritRelationship", JSON.stringify(relationship));
+  localStorage.setItem("mySpiritHistory", JSON.stringify(chatHistory));
 }
 
-function appendMessage(role, content) {
-  const chat = document.getElementById("chatBox");  // 改这里
-
-  if (!chat) {
-    console.error("chatBox 不存在");
-    return;
-  }
-
+// 插入消息
+function appendMessage(role, text) {
+  const area = document.getElementById("chatArea");
   const div = document.createElement("div");
-  div.className = role;
-  div.innerText = content;
-
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  div.className = role === "user" ? "message user-message" : "message bot-message";
+  div.innerText = text;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
 }
 
-// ================= 关系升级 =================
-function updateRelationship(userMessage) {
-
-  const rel = conversationData.relationship;
-
-  if (/孤独|想你|难受|压力|累|睡不着/.test(userMessage)) {
-    rel.intimacyScore += 2;
-  } else {
-    rel.intimacyScore += 1;
-  }
-
-  if (rel.level === 1 && rel.intimacyScore > 15) {
-    rel.level = 2;
-  }
-
-  if (rel.level === 2 && rel.intimacyScore > 40) {
-    rel.level = 3;
-  }
+// 正在输入
+function showTyping() {
+  const area = document.getElementById("chatArea");
+  const t = document.createElement("div");
+  t.className = "message bot-message";
+  t.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+  area.appendChild(t);
+  return t;
 }
 
-// ================= 主动触发时间 =================
-function getProactiveThreshold() {
-
-  const level = conversationData.relationship.level;
-
-  if (level === 1) return 12;
-  if (level === 2) return 8;
-  if (level === 3) return 4;
-
-  return 12;
-}
-
-// ================= 页面加载检测主动 =================
-window.onload = function () {
-
+// ====================== 主动消息 ======================
+function shouldSendProactive() {
   const now = Date.now();
-  const last = conversationData.lastActiveTime || 0;
-  const hours = (now - last) / (1000 * 60 * 60);
+  const gapHour = (now - relationship.lastChatTime) / (1000 * 60 * 60);
+  return gapHour > (relationship.level < 2 ? 12 : 4);
+}
 
-  if (hours > getProactiveThreshold()) {
-    triggerProactiveMessage();
+async function proactiveMessage() {
+  const tip = showTyping();
+  try {
+    const res = await fetch("/api/eastern-spirit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userMessage: "[主动消息]",
+        chatHistory,
+        memorySystem,
+        relationship,
+        mode: "proactive"
+      })
+    });
+    const data = await res.json();
+    tip.remove();
+    appendMessage("bot", data.reply);
+    chatHistory.push({ role: "bot", content: data.reply });
+    relationship.lastChatTime = Date.now();
+    saveAll();
+  } catch (e) {
+    tip.remove();
   }
-};
+}
 
-// ================= 主动消息 =================
-async function triggerProactiveMessage() {
-
-  const response = await fetch('/api/eastern-spirit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userMessage: "（主动开场）",
-      history: conversationData.conversationHistory,
-      superStyleProfile: conversationData.superStyleProfile,
-      relationship: conversationData.relationship,
-      memory: conversationData.memory,
-      triggerType: "proactive"
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-/*
-  let fullText = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const chunk = decoder.decode(value);
-    fullText += chunk;
-  }*/
-
-    let fullText = "";
-let doneReading = false;
-
-while (!doneReading) {
-    const { value, done } = await reader.read();
-    doneReading = done;
-    if (value) {
-        const chunk = decoder.decode(value);
-        // 只提取 output_text.delta
-        const matches = chunk.match(/"delta":"(.*?)"/g);
-        if (matches) {
-            matches.forEach(m => {
-                const text = m.replace(/"delta":"/, "").replace(/"$/, "");
-                fullText += text;
-            });
-        }
+// ====================== 自动提取记忆 ======================
+async function extractAndSaveMemory(userText) {
+  try {
+    const res = await fetch("/api/eastern-spirit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userMessage: userText,
+        memorySystem,
+        mode: "extract"
+      })
+    });
+    const updated = await res.json();
+    if (updated.memorySystem) {
+      memorySystem = updated.memorySystem;
+      saveAll();
     }
+  } catch (e) {}
 }
 
-  appendMessage("assistant", fullText);
+// ====================== 发送消息 ======================
+async function sendMessage() {
+  const ipt = document.getElementById("userInput");
+  const text = ipt.value.trim();
+  if (!text) return;
 
-  conversationData.conversationHistory.push({
-    role: "assistant",
-    content: fullText
-  });
+  appendMessage("user", text);
+  ipt.value = "";
+  const tip = showTyping();
 
-  conversationData.lastActiveTime = Date.now();
-  saveData();
-}
+  chatHistory.push({ role: "user", content: text });
+  relationship.lastChatTime = Date.now();
+  saveAll();
 
-// ================= 记忆抽取 =================
-async function extractMemory(userMessage) {
-
-  if (userMessage.length < 20) return;
-
-  const response = await fetch('/api/eastern-spirit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userMessage,
-      triggerType: "memory"
-    })
-  });
-
-  const text = await response.text();
+  extractAndSaveMemory(text);
 
   try {
-    const json = JSON.parse(text);
-    mergeMemory(json);
+    const res = await fetch("/api/eastern-spirit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userMessage: text,
+        chatHistory,
+        memorySystem,
+        relationship,
+        mode: "chat"
+      })
+    });
+    const data = await res.json();
+    tip.remove();
+    appendMessage("bot", data.reply);
+    chatHistory.push({ role: "bot", content: data.reply });
+    saveAll();
   } catch (e) {
-    console.log("memory parse error");
+    tip.remove();
+    appendMessage("bot", "我在呢。");
   }
 }
 
-// ================= 合并记忆 =================
-function mergeMemory(newMemory) {
-
-  if (newMemory.profile) {
-    Object.assign(conversationData.memory.profile, newMemory.profile);
-  }
-
-  if (Array.isArray(newMemory.goals)) {
-    conversationData.memory.goals.push(...newMemory.goals);
-  }
-
-  if (Array.isArray(newMemory.longTermFacts)) {
-    conversationData.memory.longTermFacts.push(...newMemory.longTermFacts);
-  }
-
-  if (Array.isArray(newMemory.emotionalPatterns)) {
-    conversationData.memory.emotionalPatterns.push(...newMemory.emotionalPatterns);
-  }
-
-  saveData();
-}
-
-// ================= 发送消息 =================
-async function sendMessage() {
-  alert("按钮触发成功");
-  const input = document.getElementById("userInput");
-  const userMessage = input.value.trim();
-  if (!userMessage) return;
-
-  appendMessage("user", userMessage);
-
-  conversationData.conversationHistory.push({
-    role: "user",
-    content: userMessage
-  });
-
-  input.value = "";
-
-  const response = await fetch('/api/eastern-spirit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userMessage,
-      history: conversationData.conversationHistory,
-      superStyleProfile: conversationData.superStyleProfile,
-      relationship: conversationData.relationship,
-      memory: conversationData.memory,
-      triggerType: "normal"
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-/*
-  let fullText = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    const chunk = decoder.decode(value);
-    fullText += chunk;
-  }*/
-
-    let fullText = "";
-let doneReading = false;
-
-while (!doneReading) {
-    const { value, done } = await reader.read();
-    doneReading = done;
-    if (value) {
-        const chunk = decoder.decode(value);
-        // 只提取 output_text.delta
-        const matches = chunk.match(/"delta":"(.*?)"/g);
-        if (matches) {
-            matches.forEach(m => {
-                const text = m.replace(/"delta":"/, "").replace(/"$/, "");
-                fullText += text;
-            });
-        }
-    }
-}
-
-  appendMessage("assistant", fullText);
-
-  conversationData.conversationHistory.push({
-    role: "assistant",
-    content: fullText
-  });
-
-  // ===== 更新系统状态 =====
-  conversationData.lastActiveTime = Date.now();
-  updateRelationship(userMessage);
-  extractMemory(userMessage);
-
-  saveData();
-}
-
+// 页面加载
+window.onload = () => {
+  chatHistory.forEach(msg => appendMessage(msg.role, msg.content));
+  if (shouldSendProactive()) proactiveMessage();
+};
 </script>
-    
+</body>
+</html>
