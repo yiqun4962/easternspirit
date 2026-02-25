@@ -314,7 +314,7 @@ async function triggerProactiveMessage() {
     })
   });
 
-  const reader = response.body.getReader();
+ /* const reader = response.body.getReader();
   const decoder = new TextDecoder();
 
   let fullText = "";
@@ -324,7 +324,26 @@ async function triggerProactiveMessage() {
     if (done) break;
     const chunk = decoder.decode(value);
     fullText += chunk;
-  }
+  }*/
+
+    let fullText = "";
+let doneReading = false;
+
+while (!doneReading) {
+    const { value, done } = await reader.read();
+    doneReading = done;
+    if (value) {
+        const chunk = decoder.decode(value);
+        // 只提取 output_text.delta
+        const matches = chunk.match(/"delta":"(.*?)"/g);
+        if (matches) {
+            matches.forEach(m => {
+                const text = m.replace(/"delta":"/, "").replace(/"$/, "");
+                fullText += text;
+            });
+        }
+    }
+}
 
   appendMessage("assistant", fullText);
 
@@ -412,7 +431,7 @@ async function sendMessage() {
     })
   });
 
-  const reader = response.body.getReader();
+ /* const reader = response.body.getReader();
   const decoder = new TextDecoder();
 
   let fullText = "";
@@ -422,7 +441,26 @@ async function sendMessage() {
     if (done) break;
     const chunk = decoder.decode(value);
     fullText += chunk;
-  }
+  }*/
+
+    let fullText = "";
+let doneReading = false;
+
+while (!doneReading) {
+    const { value, done } = await reader.read();
+    doneReading = done;
+    if (value) {
+        const chunk = decoder.decode(value);
+        // 只提取 output_text.delta
+        const matches = chunk.match(/"delta":"(.*?)"/g);
+        if (matches) {
+            matches.forEach(m => {
+                const text = m.replace(/"delta":"/, "").replace(/"$/, "");
+                fullText += text;
+            });
+        }
+    }
+}
 
   appendMessage("assistant", fullText);
 
