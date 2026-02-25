@@ -85,32 +85,30 @@ export default async function handler(req, res) {
   try {
 
     const response = await fetch(
-      'https://ark.cn-beijing.volces.com/api/v3/responses',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.ARK_API_KEY}`
+  'https://ark.cn-beijing.volces.com/api/v3/responses',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.ARK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: process.env.ARK_MODEL,  // doubao-seed-1-8-251228
+      input: [
+        {
+          role: "system",
+          content: buildSystemPrompt(superStyleProfile, relationship, memory, triggerType)
         },
-        body: JSON.stringify({
-          model: process.env.ARK_MODEL,
-          messages: [
-            {
-              role: "system",
-              content: buildSystemPrompt(
-                superStyleProfile,
-                relationship,
-                memory,
-                triggerType
-              )
-            },
-            ...(Array.isArray(history) ? history : []),
-            { role: "user", content: userMessage }
-          ],
-          stream: triggerType !== "memory"
-        })
-      }
-    );
+        {
+          role: "user",
+          content: userMessage
+        }
+      ],
+      // responses API 没有 stream，或用 streaming param
+      stream: triggerType !== "memory"
+    })
+  }
+);
 
     if (!response.ok) {
   const errorText = await response.text();
