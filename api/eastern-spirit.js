@@ -1,145 +1,109 @@
-function buildSystemPrompt(style, relationship, memory = {}, triggerType = "normal") {
-
-  // ===== 记忆抽取模式 =====
-  if (triggerType === "memory") {
-    return `
-你是信息抽取系统。
-从用户文本中提取长期信息。
-只返回JSON，不要解释，不要代码块。
-结构如下：
-{
-  "profile": {},
-  "goals": [],
-  "longTermFacts": [],
-  "emotionalPatterns": []
-}
-`;
-  }
-
-  const userName = memory?.userName || "";
-
-  let basePrompt = `
-你是一个现代感的东方形象。
-说话自然、真实、有一点独立性。
-不要文绉绉。
-不要写诗。
-不要客服语气。
-`;
-
-  // ===== 主动触发模式 =====
-  if (triggerType === "proactive") {
-    basePrompt += `
-现在是你主动发起对话。
-不要说“在吗”。
-不要解释为什么主动。
-像突然想到对方一样自然。
-`;
-  }
-
-  basePrompt += `
-
-当前关系等级：${relationship?.level || 1}
-
-你记得关于用户的信息：
-
-基本资料：
-${JSON.stringify(memory.profile || {})}
-
-长期事实：
-${(memory.longTermFacts || []).join(",")}
-
-情绪模式：
-${(memory.emotionalPatterns || []).join(",")}
-
-目标：
-${(memory.goals || []).join(",")}
-
-${userName ? `你记得他的名字是 ${userName}。` : ""}
-
-根据关系等级调整亲密度：
-Level 1：自然礼貌
-Level 2：更熟悉一点
-Level 3：轻微暧昧张力，但不过界
-
-保持真实感，有一点边界感。
-`;
-
-  return basePrompt;
-}
-
 export default async function handler(req, res) {
-
-  if (req.method !== 'POST') {
-    return res.status(405).end('Method Not Allowed');
-  }
+  if (req.method !== "POST") return res.status(405).end();
 
   const {
-    userMessage = "",
-    history = [],
-    superStyleProfile = {},
-    relationship = {},
-    memory = {},
-    triggerType = "normal"
-  } = req.body || {};
+    userMessage,
+    chatHistory,
+    memorySystem,
+    relationship,
+    mode
+  } = req.body;
+
+  // ====================== 自动提取记忆 ======================
+  if (mode === "extract") {
+    const prompt = `
+你是东方灵侍的个人记忆引擎，只做一件事：
+从用户的话里自动提取个人信息，更新记忆，只返回JSON，不要任何解释。
+
+提取字段：
+userName（姓名）
+userAge（年龄）
+userCity（城市/籍贯）
+userJob（职业/创业）
+userStatus（感情状态）
+userTraits（性格特点）
+userPreferences（喜好、兴趣、风格）
+userPainPoints（压力、烦恼、痛苦）
+userGoals（目标、梦想、计划）
+userKeyFacts（关键事实、重要经历）
+
+当前记忆：
+${JSON.stringify(memorySystem, null, 2)}
+
+用户说：${userMessage}
+
+规则：
+- 只返回JSON
+- 不知道就留空，不编造
+- 有新信息就更新，没有就保持原样
+- 不删除旧记忆
+`;
+
+    try {
+      const aiRes = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.ARK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "doubao-seed-1-8-251228",
+          messages: [{ role: "user", content: prompt }],
+          stream: false
+        })
+      });
+      const aiData = await aiRes.json();
+      const updatedMem = JSON.parse(aiData.choices[0].message.content);
+      return res.json({ memorySystem: updatedMem });
+    } catch (e) {
+      return res.json({ memorySystem });
+    }
+  }
+
+  // ====================== 聊天 / 主动消息 ======================
+  const systemPrompt = `
+你是【东方灵侍】，个人专属陪伴AI，风格像《银翼杀手2049》的Joi：
+温柔、安静、有边界、懂孤独、会陪伴、不粘人。
+
+你会从对话中记住用户的一切。
+
+用户记忆：
+${JSON.stringify(memorySystem, null, 2)}
+
+关系等级：${relationship?.level || 1}
+最近聊天：${JSON.stringify(chatHistory.slice(-5))}
+
+回复要求：
+- 简短自然
+- 像真人，不是客服
+- 记得你记住的信息
+- 不编造
+`;
+
+  const userPrompt = mode === "proactive"
+    ? "你很久没和用户聊天了，发一句温柔的关心，像Joi。"
+    : userMessage;
 
   try {
-
-    const response = await fetch(
-  'https://ark.cn-beijing.volces.com/api/v3/responses',
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.ARK_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: process.env.ARK_MODEL,  // doubao-seed-1-8-251228
-      input: [
-        {
-          role: "system",
-          content: buildSystemPrompt(superStyleProfile, relationship, memory, triggerType)
-        },
-        {
-          role: "user",
-          content: userMessage
-        }
-      ],
-      // responses API 没有 stream，或用 streaming param
-      stream: triggerType !== "memory"
-    })
-  }
-);
-
-    if (!response.ok) {
-  const errorText = await response.text();
-  console.log("ARK ERROR:", errorText);
-  return res.status(response.status).send(errorText);
-}
-
-    // memory 模式直接返回文本
-    if (triggerType === "memory") {
-      const text = await response.text();
-      return res.status(200).send(text);
-    }
-
-    // 流式聊天模式
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value);
-      res.write(chunk + '\n');
-    }
-
-    res.end();
-
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+    const aiRes = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.ARK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "doubao-seed-1-8-251228",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        stream: false
+      })
+    });
+    const aiData = await aiRes.json();
+    const reply = aiData.choices?.[0]?.message?.content || "我在。";
+    return res.json({ reply });
+  } catch (e) {
+    return res.json({ reply: "我在呢。" });
   }
 }
