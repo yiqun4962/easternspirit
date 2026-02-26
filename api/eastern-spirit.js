@@ -12,49 +12,62 @@ export default async function handler(req, res) {
         let reply = '';
         let newMemory = null;
 
-        // 1. 首次对话 / 无记忆时的回复
-        if (memories.length === 0) {
-            if (message.includes('你好') || message.includes('嗨') || message.includes('hello') || message.includes('在吗')) {
-                reply = '你好呀～ 我是东方灵侍，很高兴和你聊天。';
-            } else if (message.includes('名字') || message.includes('我是谁') || message.includes('我叫')) {
-                const nameMatch = message.match(/我叫(.*)/);
-                const name = nameMatch ? nameMatch[1] : '你';
-                reply = `你好呀，${name}。很高兴认识你，以后我会记得你的名字的。`;
-                newMemory = `你叫${name}`;
-            } else if (message.includes('现在不能聊吗')) {
-                reply = '当然可以聊呀，我一直都在。你现在想聊点什么呢？';
-            } else {
-                reply = `我听到你说“${message}”了。可以多和我说说吗？`;
-                newMemory = `你提到“${message}”`;
-            }
-        } else {
-            // 2. 有记忆时的回复，结合上下文
-            const lastMemory = memories[memories.length - 1];
-
-            if (message.includes('你好') || message.includes('嗨') || message.includes('hello') || message.includes('在吗')) {
-                reply = '我在呢，有什么想聊的吗？';
-            } else if (message.includes('名字') || message.includes('我是谁') || message.includes('我叫')) {
-                const nameMatch = message.match(/我叫(.*)/);
-                const name = nameMatch ? nameMatch[1] : '你';
-                reply = `好的，我记住了，你叫${name}。以后我会这样称呼你。`;
-                newMemory = `你叫${name}`;
-            } else if (message.includes('现在不能聊吗')) {
-                reply = '当然可以聊呀，我一直都在。你现在想聊点什么呢？';
-            } else if (lastMemory.content.includes('你叫')) {
-                // 如果上一条记忆是名字，就用名字回应
-                const name = lastMemory.content.replace('你叫', '');
-                reply = `${name}，我听到你说“${message}”了。可以多和我说说吗？`;
-                newMemory = `你提到“${message}”`;
-            } else {
-                // 通用回复，引用上一条记忆
-                const lastContent = lastMemory.content.replace('你提到', '').replace(/“”/g, '');
-                reply = `我听到你说“${message}”了。我还记得你之前提到${lastContent}，最近有什么新的想法吗？`;
-                newMemory = `你提到“${message}”`;
+        // 静默提取用户名字（只做不声张）
+        let userName = null;
+        for (const mem of memories) {
+            const nameMatch = mem.content.match(/你叫(.*)/) || mem.content.match(/我是(.*)/);
+            if (nameMatch) {
+                userName = nameMatch[1].trim();
+                break;
             }
         }
 
-        // 模拟延迟
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // 1. 处理名字相关消息（静默记忆，不废话）
+        const newNameMatch = message.match(/我叫(.*)/) || message.match(/我是(.*)/);
+        if (newNameMatch) {
+            const newName = newNameMatch[1].trim();
+            newMemory = `你叫${newName}`;
+            // 直接回应，不提“记住”二字
+            reply = `你好。`;
+        } 
+        // 2. 处理日常问候
+        else if (message.includes('你好') || message.includes('嗨') || message.includes('在吗')) {
+            reply = userName ? `${userName}，我在。` : `我在呢。`;
+        }
+        // 3. 处理“喜欢”类分享
+        else if (message.includes('喜欢')) {
+            reply = userName ? 
+                `${userName}，这种偏爱很有意思。` : 
+                `这种偏爱很有意思。`;
+            newMemory = `你提到${message}`;
+        }
+        // 4. 通用对话（自然承接，低概率翻旧账）
+        else {
+            // 基础回应库（避免复读）
+            const baseReplies = [
+                `嗯。`,
+                `原来如此。`,
+                `我明白你的意思了。`,
+                `这样啊。`
+            ];
+            reply = userName ? 
+                `${userName}，${baseReplies[Math.floor(Math.random() * baseReplies.length)]}` : 
+                baseReplies[Math.floor(Math.random() * baseReplies.length)];
+
+            // 30%概率自然衔接上一条记忆（不提及记忆本身）
+            if (memories.length > 0 && Math.random() > 0.7) {
+                const lastMem = memories[memories.length - 1].content.replace(/你叫|你提到/g, '').trim();
+                // 过滤掉名字记忆，避免重复问名字
+                if (!lastMem.includes('你叫') && !lastMem.includes('我是')) {
+                    reply += ` 对了，上次说的${lastMem}，后来怎么样了？`;
+                }
+            }
+
+            newMemory = `你提到${message}`;
+        }
+
+        // 模拟真人思考延迟
+        await new Promise(resolve => setTimeout(resolve, 600));
 
         return res.status(200).json({
             reply: reply,
@@ -62,9 +75,9 @@ export default async function handler(req, res) {
         });
 
     } catch (error) {
-        console.error('API Handler Error:', error);
+        console.error('API Error:', error);
         return res.status(500).json({
-            reply: '抱歉，我现在有点疲惫，稍后再和你深入聊聊吧～',
+            reply: '抱歉，刚才没跟上你的节奏。',
             memory: null
         });
     }
