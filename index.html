@@ -27,25 +27,15 @@
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .content-auto {
-                content-visibility: auto;
-            }
-            .chat-shadow {
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            }
-            .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-            }
-            .scrollbar-hide {
-                -ms-overflow-style: none;
-                scrollbar-width: none;
-            }
+            .content-auto { content-visibility: auto; }
+            .chat-shadow { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            .scrollbar-hide::-webkit-scrollbar { display: none; }
+            .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         }
     </style>
 </head>
 <body class="bg-background min-h-screen font-song text-gray-800">
     <div class="flex flex-col h-screen max-w-3xl mx-auto">
-        <!-- 顶部导航 -->
         <header class="flex items-center justify-between p-4 bg-primary/90 text-white shadow-md">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-primary font-bold text-xl">灵</div>
@@ -54,56 +44,36 @@
                     <p class="text-sm opacity-80">Eastern Spirit Keeper</p>
                 </div>
             </div>
-            <button id="memoryBtn" class="memory-btn flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-md text-sm transition-colors">
-                <i class="fa fa-book"></i>
-                我记得的你
+            <button id="memoryBtn" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-md text-sm transition-colors">
+                <i class="fa fa-book"></i> 我记得的你
             </button>
         </header>
 
-        <!-- 聊天区域 -->
-        <div id="chatContainer" class="flex-1 p-4 overflow-y-auto scrollbar-hide space-y-4">
-            <!-- 聊天消息会动态渲染在这里 -->
-        </div>
+        <div id="chatContainer" class="flex-1 p-4 overflow-y-auto scrollbar-hide space-y-4"></div>
 
-        <!-- 输入区域 -->
         <footer class="p-4 bg-white shadow-inner">
             <div class="flex items-center gap-3 max-w-2xl mx-auto">
-                <input 
-                    id="userInput" 
-                    type="text" 
-                    placeholder="请输入你的想法，与东方灵侍对话..."
-                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-                >
-                <button 
-                    id="sendBtn" 
-                    class="w-12 h-12 rounded-full bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors"
-                >
+                <input id="userInput" placeholder="请输入你的想法，与东方灵侍对话..."
+                    class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all">
+                <button id="sendBtn" class="w-12 h-12 rounded-full bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors">
                     <i class="fa fa-paper-plane-o text-xl"></i>
                 </button>
             </div>
         </footer>
     </div>
 
-    <!-- 记忆面板弹窗 -->
     <div id="memoryModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
         <div class="bg-white rounded-lg w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <div class="p-4 bg-primary text-white flex items-center justify-between">
                 <h2 class="font-bold text-lg">我记得的你</h2>
-                <button id="closeModal" class="text-white hover:text-gray-200">
-                    <i class="fa fa-times text-xl"></i>
-                </button>
+                <button id="closeModal" class="text-white hover:text-gray-200"><i class="fa fa-times text-xl"></i></button>
             </div>
-            <div id="memoryContent" class="flex-1 p-4 overflow-y-auto scrollbar-hide space-y-3">
-                <!-- 记忆内容会动态渲染 -->
-                <div class="text-gray-500 text-center py-8">
-                    还没有关于你的记忆，开始聊天吧～
-                </div>
-            </div>
+            <div id="memoryContent" class="flex-1 p-4 overflow-y-auto scrollbar-hide space-y-3"></div>
             <div class="p-3 bg-gray-50 flex justify-end gap-2">
-                <button id="exportMemories" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-100 transition-colors">
+                <button id="exportMemories" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm hover:bg-gray-100">
                     <i class="fa fa-download mr-1"></i> 导出
                 </button>
-                <button id="clearMemories" class="px-3 py-1.5 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50 transition-colors">
+                <button id="clearMemories" class="px-3 py-1.5 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50">
                     <i class="fa fa-trash mr-1"></i> 清空
                 </button>
             </div>
@@ -111,37 +81,19 @@
     </div>
 
     <script>
-        // 核心配置：问候语库（按时间间隔分类）
         const GREETING_MESSAGES = {
-            lessThanOneDay: [
-                "昨天和你聊得很开心，今天也想打个招呼～",
-                "我还记着上次和你聊的事，今天来打个招呼。",
-                "想起昨天和你的对话，今天再来看看你。"
-            ],
-            oneToSevenDays: [
-                "这几天没见，你还好吗？",
-                "这几天没聊，今天来和你打个招呼。",
-                "记挂着你，这几天过得怎么样呀？"
-            ],
-            moreThanSevenDays: [
-                "好久不见，最近在忙什么呀？",
-                "许久没聊，今天特意来看看你。",
-                "好久没和你对话了，最近一切顺利吗？"
-            ],
-            firstTime: [
-                "你好呀：）",
-                "很高兴认识你，能告诉我你的名字，还有关于你的小事吗？：）"
-            ]
+            lessThanOneDay: ["昨天和你聊得很开心，今天也想打个招呼～","我还记着上次和你聊的事，今天来打个招呼。","想起昨天和你的对话，今天再来看看你。"],
+            oneToSevenDays: ["这几天没见，你还好吗？","这几天没聊，今天来和你打个招呼。","记挂着你，这几天过得怎么样呀？"],
+            moreThanSevenDays: ["好久不见，最近在忙什么呀？","许久没聊，今天特意来看看你。","好久没和你对话了，最近一切顺利吗？"],
+            firstTime: ["你好呀：）","很高兴认识你，能告诉我你的名字，还有关于你的小事吗？：）"]
         };
 
-        // 初始化变量
         let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-        let memories = JSON.parse(localStorage.getItem('memories')) || [];
-        const lastChatTime = localStorage.getItem('lastChatTime'); // 新增：上次聊天时间戳
+        let longTermFacts = JSON.parse(localStorage.getItem('longTermFacts')) || [];
+        const lastChatTime = localStorage.getItem('lastChatTime');
         const userId = localStorage.getItem('userId') || generateUserId();
         localStorage.setItem('userId', userId);
 
-        // DOM 元素
         const chatContainer = document.getElementById('chatContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
@@ -152,219 +104,192 @@
         const clearMemories = document.getElementById('clearMemories');
         const exportMemories = document.getElementById('exportMemories');
 
-        // 生成唯一用户ID
         function generateUserId() {
-            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2,10);
         }
 
-        // 计算上次聊天到现在的小时数
         function getHoursSinceLastChat() {
             if (!lastChatTime) return null;
-            const now = new Date();
-            const last = new Date(lastChatTime);
-            return (now - last) / (1000 * 60 * 60);
+            return (Date.now() - +lastChatTime) / (1000*60*60);
         }
 
-        // 获取匹配的主动问候语
         function getAutoGreeting() {
-            const hours = getHoursSinceLastChat();
-            // 首次聊天
-            if (!hours) return GREETING_MESSAGES.firstTime;
-            // 昨天聊过（<24小时）
-            if (hours < 24) return [GREETING_MESSAGES.lessThanOneDay[Math.floor(Math.random() * GREETING_MESSAGES.lessThanOneDay.length)]];
-            // 1-7天
-            if (hours < 168) return [GREETING_MESSAGES.oneToSevenDays[Math.floor(Math.random() * GREETING_MESSAGES.oneToSevenDays.length)]];
-            // 超过7天
-            return [GREETING_MORE_THAN_SEVEN_DAYS[Math.floor(Math.random() * GREETING_MESSAGES.moreThanSevenDays.length)]];
+            const h = getHoursSinceLastChat();
+            if (!h) return GREETING_MESSAGES.firstTime;
+            if (h < 24) return GREETING_MESSAGES.lessThanOneDay;
+            if (h < 168) return GREETING_MESSAGES.oneToSevenDays;
+            return GREETING_MESSAGES.moreThanSevenDays;
         }
 
-        // 渲染聊天记录
         function renderChat() {
             chatContainer.innerHTML = '';
             if (chatHistory.length === 0) {
-                // 首次加载/无记录时，发送主动问候
-                const greetings = getAutoGreeting();
-                greetings.forEach(greet => {
-                    addBotMessage(greet, true);
-                });
+                const g = getAutoGreeting();
+                addBotMessage(g[Math.floor(Math.random()*g.length)]);
                 return;
             }
-            chatHistory.forEach(msg => {
-                if (msg.role === 'user') {
-                    addUserMessage(msg.content, false);
-                } else {
-                    addBotMessage(msg.content, false);
+            chatHistory.forEach(m => {
+                m.role === 'user' ? addUserMessage(m.content, false) : addBotMessage(m.content, false);
+            });
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addUserMessage(text, save = true) {
+            const div = document.createElement('div');
+            div.className = 'flex justify-end';
+            div.innerHTML = `<div class="max-w-[75%] bg-chatUser text-white p-3 rounded-lg rounded-tr-none chat-shadow"><p class="whitespace-pre-wrap">${text}</p></div>`;
+            chatContainer.appendChild(div);
+            if (save) {
+                chatHistory.push({ role: 'user', content: text });
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+                localStorage.setItem('lastChatTime', Date.now());
+            }
+        }
+
+        function addBotMessage(text, save = true) {
+            const div = document.createElement('div');
+            div.className = 'flex justify-start';
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-primary mr-3 flex-shrink-0"><i class="fa fa-comment-o"></i></div>
+                <div class="max-w-[75%] bg-chatBot p-3 rounded-lg rounded-tl-none chat-shadow"><p class="whitespace-pre-wrap">${text}</p></div>
+            `;
+            chatContainer.appendChild(div);
+            if (save) {
+                chatHistory.push({ role: 'assistant', content: text });
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+            }
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function renderMemories() {
+            if (longTermFacts.length === 0) {
+                memoryContent.innerHTML = `<div class="text-gray-500 text-center py-8">还没有记忆，开始聊天吧～</div>`;
+                return;
+            }
+            memoryContent.innerHTML = longTermFacts.map((f,i) => `
+                <div class="p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
+                    <p class="text-gray-700">${f}</p>
+                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                        <span>${new Date().toLocaleDateString()}</span>
+                        <button class="del-mem text-red-500 hover:text-red-700" data-i="${i}">×</button>
+                    </div>
+                </div>
+            `).join('');
+            document.querySelectorAll('.del-mem').forEach(b => {
+                b.onclick = () => {
+                    longTermFacts.splice(+b.dataset.i,1);
+                    localStorage.setItem('longTermFacts', JSON.stringify(longTermFacts));
+                    renderMemories();
                 }
             });
-            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // 添加用户消息
-        function addUserMessage(text, save = true) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'flex justify-end';
-            msgDiv.innerHTML = `
-                <div class="max-w-[75%] bg-chatUser text-white p-3 rounded-lg rounded-tr-none chat-shadow">
-                    <p class="whitespace-pre-wrap">${text}</p>
-                </div>
-            `;
-            chatContainer.appendChild(msgDiv);
-            if (save) {
-                chatHistory.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
-                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-                // 新增：更新上次聊天时间戳
-                localStorage.setItem('lastChatTime', new Date().toISOString());
-            }
-        }
-
-        // 添加机器人消息
-        function addBotMessage(text, save = true) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'flex justify-start';
-            msgDiv.innerHTML = `
-                <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-primary mr-3 flex-shrink-0">
-                    <i class="fa fa-comment-o"></i>
-                </div>
-                <div class="max-w-[75%] bg-chatBot p-3 rounded-lg rounded-tl-none chat-shadow">
-                    <p class="whitespace-pre-wrap">${text}</p>
-                </div>
-            `;
-            chatContainer.appendChild(msgDiv);
-            if (save) {
-                chatHistory.push({ role: 'assistant', content: text, timestamp: new Date().toISOString() });
-                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-            }
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-
-        // 渲染记忆列表
-        function renderMemories() {
-            if (memories.length === 0) {
-                memoryContent.innerHTML = `
-                    <div class="text-gray-500 text-center py-8">
-                        还没有关于你的记忆，开始聊天吧～
-                    </div>
-                `;
-                return;
-            }
-            memoryContent.innerHTML = '';
-            // 按时间倒序排列
-            const sortedMemories = [...memories].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            sortedMemories.forEach((mem, index) => {
-                const memDiv = document.createElement('div');
-                memDiv.className = 'p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors';
-                // 核心修改：转述式记忆展示，去除分析标签
-                memDiv.innerHTML = `
-                    <p class="text-gray-700">${mem.content}</p>
-                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
-                        <span>${new Date(mem.timestamp).toLocaleDateString()}</span>
-                        <button class="delete-memory text-red-500 hover:text-red-700" data-index="${index}">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    </div>
-                `;
-                memoryContent.appendChild(memDiv);
-            });
-            // 绑定删除单条记忆事件
-            document.querySelectorAll('.delete-memory').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const index = parseInt(e.target.dataset.index || e.target.parentElement.dataset.index);
-                    deleteSingleMemory(index);
-                });
-            });
-        }
-
-        // 删除单条记忆
-        function deleteSingleMemory(index) {
-            memories.splice(index, 1);
-            localStorage.setItem('memories', JSON.stringify(memories));
-            renderMemories();
-        }
-
-        // 发送消息到后端
-        async function sendMessageToAPI(text) {
+        async function extractMemory(text) {
             try {
-                const response = await fetch('/api/eastern-spirit', {
+                const r = await fetch('/api/eastern-spirit', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        userId: userId,
-                        message: text,
-                        memories: memories // 传递当前记忆
+                        userMessage: text,
+                        history: [],
+                        superStyleProfile: {},
+                        relationship: { level: 1 },
+                        memory: {
+                            userName: "轶群",
+                            profile: {},
+                            longTermFacts: longTermFacts,
+                            emotionalPatterns: [],
+                            goals: []
+                        },
+                        triggerType: "memory"
                     })
                 });
-                const data = await response.json();
-                if (data.reply) addBotMessage(data.reply);
-                if (data.memory) {
-                    // 核心修改：存储转述式记忆，仅保留content和timestamp
-                    memories.push({
-                        content: data.memory,
-                        timestamp: new Date().toISOString()
-                    });
-                    localStorage.setItem('memories', JSON.stringify(memories));
+                const rText = await r.text();
+                const parsed = JSON.parse(rText);
+                if (parsed.longTermFacts?.length) {
+                    longTermFacts.push(...parsed.longTermFacts);
+                    localStorage.setItem('longTermFacts', JSON.stringify(longTermFacts));
                 }
-            } catch (error) {
-                addBotMessage('抱歉，我现在有点忙，稍后再和你聊吧～');
-                console.error('API Error:', error);
+            } catch (e) { console.error('记忆抽取失败',e) }
+        }
+
+        async function sendMessageToAPI(text) {
+            addBotMessage("……", true);
+            try {
+                const res = await fetch('/api/eastern-spirit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userMessage: text,
+                        history: chatHistory.slice(-6),
+                        superStyleProfile: {},
+                        relationship: { level: 1 },
+                        memory: {
+                            userName: "轶群",
+                            profile: {},
+                            longTermFacts: longTermFacts,
+                            emotionalPatterns: [],
+                            goals: []
+                        },
+                        triggerType: "normal"
+                    })
+                });
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let full = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    full += decoder.decode(value);
+                    chatContainer.lastChild.querySelector('p').textContent = full;
+                }
+
+                chatHistory.pop();
+                chatHistory.push({ role:'assistant', content:full });
+                localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+                chatContainer.lastChild.querySelector('p').textContent = full;
+
+                await extractMemory(text);
+            } catch (e) {
+                console.error(e);
+                chatHistory.pop();
+                addBotMessage("抱歉，我有点乱了，等下再聊～");
             }
         }
 
-        // 事件监听
-        sendBtn.addEventListener('click', () => {
-            const text = userInput.value.trim();
-            if (!text) return;
-            addUserMessage(text);
+        sendBtn.onclick = () => {
+            const t = userInput.value.trim();
+            if (!t) return;
+            addUserMessage(t);
             userInput.value = '';
-            sendMessageToAPI(text);
-        });
+            sendMessageToAPI(t);
+        };
 
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendBtn.click();
-            }
-        });
+        userInput.onkeydown = e => e.key === 'Enter' && sendBtn.click();
 
-        memoryBtn.addEventListener('click', () => {
-            renderMemories();
-            memoryModal.classList.remove('hidden');
-        });
+        memoryBtn.onclick = () => { renderMemories(); memoryModal.classList.remove('hidden'); }
+        closeModal.onclick = () => memoryModal.classList.add('hidden');
+        memoryModal.onclick = e => e.target === memoryModal && memoryModal.classList.add('hidden');
 
-        closeModal.addEventListener('click', () => {
-            memoryModal.classList.add('hidden');
-        });
-
-        clearMemories.addEventListener('click', () => {
-            if (confirm('确定要清空所有记忆吗？此操作不可恢复～')) {
-                memories = [];
-                localStorage.setItem('memories', JSON.stringify(memories));
+        clearMemories.onclick = () => {
+            if(confirm('清空记忆？')){
+                longTermFacts=[];
+                localStorage.setItem('longTermFacts',JSON.stringify(longTermFacts));
                 renderMemories();
             }
-        });
+        }
 
-        exportMemories.addEventListener('click', () => {
-            if (memories.length === 0) {
-                alert('暂无记忆可导出～');
-                return;
-            }
-            const blob = new Blob([JSON.stringify(memories, null, 2)], { type: 'application/json' });
+        exportMemories.onclick = () => {
+            const b = new Blob([JSON.stringify(longTermFacts,null,2)],{type:'application/json'});
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `东方灵侍-我的记忆-${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+            a.href=URL.createObjectURL(b);
+            a.download=`东方灵侍记忆_${new Date().toLocaleDateString()}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
-        });
+        }
 
-        // 点击模态框背景关闭
-        memoryModal.addEventListener('click', (e) => {
-            if (e.target === memoryModal) {
-                memoryModal.classList.add('hidden');
-            }
-        });
-
-        // 初始化
         renderChat();
     </script>
 </body>
