@@ -1,109 +1,54 @@
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
-
-  const {
-    userMessage,
-    chatHistory,
-    memorySystem,
-    relationship,
-    mode
-  } = req.body;
-
-  // ====================== 自动提取记忆 ======================
-  if (mode === "extract") {
-    const prompt = `
-你是东方灵侍的个人记忆引擎，只做一件事：
-从用户的话里自动提取个人信息，更新记忆，只返回JSON，不要任何解释。
-
-提取字段：
-userName（姓名）
-userAge（年龄）
-userCity（城市/籍贯）
-userJob（职业/创业）
-userStatus（感情状态）
-userTraits（性格特点）
-userPreferences（喜好、兴趣、风格）
-userPainPoints（压力、烦恼、痛苦）
-userGoals（目标、梦想、计划）
-userKeyFacts（关键事实、重要经历）
-
-当前记忆：
-${JSON.stringify(memorySystem, null, 2)}
-
-用户说：${userMessage}
-
-规则：
-- 只返回JSON
-- 不知道就留空，不编造
-- 有新信息就更新，没有就保持原样
-- 不删除旧记忆
-`;
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
     try {
-      const aiRes = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.ARK_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "doubao-seed-1-8-251228",
-          messages: [{ role: "user", content: prompt }],
-          stream: false
-        })
-      });
-      const aiData = await aiRes.json();
-      const updatedMem = JSON.parse(aiData.choices[0].message.content);
-      return res.json({ memorySystem: updatedMem });
-    } catch (e) {
-      return res.json({ memorySystem });
+        const { userId, message, memories } = req.body;
+        if (!userId || !message) {
+            return res.status(400).json({ error: '缺少必要参数' });
+        }
+
+        // 模拟AI回复逻辑（可替换为真实大模型调用）
+        let reply = '';
+        let newMemory = null;
+
+        // 首次对话/无记忆时的回复
+        if (memories.length === 0) {
+            if (message.includes('你好') || message.includes('嗨') || message.includes('hello')) {
+                reply = '你好呀～ 我是东方灵侍，很高兴认识你。';
+            } else if (message.includes('名字') || message.includes('我是谁')) {
+                reply = '我还不知道你的名字呢，能告诉我吗？还有你喜欢的小事～';
+            } else {
+                reply = `你说“${message}”，我记下啦～ 以后慢慢和我说说你的故事吧。`;
+                // 生成第一条转述式记忆
+                newMemory = `你说过“${message}”`;
+            }
+        } else {
+            // 有记忆时的回复，结合记忆生成
+            const randomMem = memories[Math.floor(Math.random() * memories.length)];
+            if (message.includes('记得') || message.includes('记忆')) {
+                reply = `我当然记得呀～ 你曾提到${randomMem.content.slice(5)}，这些我都记在心里呢。`;
+            } else {
+                reply = `收到你的话啦：“${message}”。我还记得你之前说过${randomMem.content.slice(5)}，最近有新的变化吗？`;
+                // 生成新的转述式记忆
+                newMemory = `你提到${message.length > 15 ? message.substring(0, 15) + '...' : message}`;
+            }
+        }
+
+        // 模拟大模型调用延迟，提升真实感
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        return res.status(200).json({
+            reply: reply,
+            memory: newMemory // 仅返回转述式记忆内容，无分析字段
+        });
+
+    } catch (error) {
+        console.error('API Handler Error:', error);
+        return res.status(500).json({
+            reply: '抱歉，我现在有点疲惫，稍后再和你深入聊聊吧～',
+            memory: null
+        });
     }
-  }
-
-  // ====================== 聊天 / 主动消息 ======================
-  const systemPrompt = `
-你是【东方灵侍】，个人专属陪伴AI，风格像《银翼杀手2049》的Joi：
-温柔、安静、有边界、懂孤独、会陪伴、不粘人。
-
-你会从对话中记住用户的一切。
-
-用户记忆：
-${JSON.stringify(memorySystem, null, 2)}
-
-关系等级：${relationship?.level || 1}
-最近聊天：${JSON.stringify(chatHistory.slice(-5))}
-
-回复要求：
-- 简短自然
-- 像真人，不是客服
-- 记得你记住的信息
-- 不编造
-`;
-
-  const userPrompt = mode === "proactive"
-    ? "你很久没和用户聊天了，发一句温柔的关心，像Joi。"
-    : userMessage;
-
-  try {
-    const aiRes = await fetch("https://ark.cn-beijing.volces.com/api/v3/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.ARK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "doubao-seed-1-8-251228",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        stream: false
-      })
-    });
-    const aiData = await aiRes.json();
-    const reply = aiData.choices?.[0]?.message?.content || "我在。";
-    return res.json({ reply });
-  } catch (e) {
-    return res.json({ reply: "我在呢。" });
-  }
 }
