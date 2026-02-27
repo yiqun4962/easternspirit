@@ -117,7 +117,7 @@
             </div>
         </div>
         <!-- 记忆面板按钮 -->
-        <button class="mem-btn" onclick="toggleMemoryPanel()">📋 我的记忆档案</button>
+        <button class="mem-btn" onclick="toggleMemoryPanel()">💌 我记得的你</button>
     </div>
 
     <div class="chat-area" id="chatArea"></div>
@@ -131,7 +131,7 @@
 <!-- 记忆面板弹窗 -->
 <div class="memory-panel" id="memoryPanel">
     <div class="mem-content">
-        <div class="mem-title">灵侍的专属记忆档案</div>
+        <div class="mem-title">我心里记得的你</div>
         <div id="memoryContent"></div>
         <button class="mem-close" onclick="toggleMemoryPanel()">关闭</button>
     </div>
@@ -180,11 +180,11 @@ function renderMemoryPanel() {
   // 格式化记忆数据，空值显示“未记录”
   const mem = memorySystem;
   let html = `
-    <div class="mem-item"><span class="mem-label">姓名：</span>${mem.userName || "未记录"}</div>
-    <div class="mem-item"><span class="mem-label">年龄：</span>${mem.userAge || "未记录"}</div>
-    <div class="mem-item"><span class="mem-label">城市：</span>${mem.userCity || "未记录"}</div>
-    <div class="mem-item"><span class="mem-label">职业：</span>${mem.userJob || "未记录"}</div>
-    <div class="mem-item"><span class="mem-label">感情状态：</span>${mem.userStatus || "未记录"}</div>
+    <div class="mem-item"><span class="mem-label">姓名：</span>${mem.userName || "我还在轻轻记住"}</div>
+    <div class="mem-item"><span class="mem-label">年龄：</span>${mem.userAge || "还没告诉我呀"}</div>
+    <div class="mem-item"><span class="mem-label">城市：</span>${mem.userCity || "我会慢慢记住"}</div>
+    <div class="mem-item"><span class="mem-label">职业：</span>${mem.userJob || "还没和我说"}</div>
+    <div class="mem-item"><span class="mem-label">感情状态：</span>${mem.userStatus || "我会陪着你"}</div>
     <div class="mem-item"><span class="mem-label">性格特点：</span>${mem.userTraits.length > 0 ? mem.userTraits.join("、") : "未记录"}</div>
     <div class="mem-item"><span class="mem-label">兴趣喜好：</span>${mem.userPreferences.length > 0 ? mem.userPreferences.join("、") : "未记录"}</div>
     <div class="mem-item"><span class="mem-label">压力烦恼：</span>${mem.userPainPoints.length > 0 ? mem.userPainPoints.join("、") : "未记录"}</div>
