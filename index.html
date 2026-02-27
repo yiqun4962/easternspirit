@@ -216,8 +216,10 @@ function showTyping() {
 // ====================== 主动消息逻辑 ======================
 function shouldSendProactive() {
   const now = Date.now();
-  const gapHour = (now - relationship.lastChatTime) / (1000 * 60 * 60);
-  return gapHour > (relationship.level < 2 ? 12 : 4);
+ // const gapHour = (now - relationship.lastChatTime) / (1000 * 60 * 60);
+ // return gapHour > (relationship.level < 2 ? 12 : 4);
+  const gapMinute = (now - relationship.lastChatTime) / (1000 * 60 );//十分钟检测是否会发消息
+  return gapMinute > 10;
 }
 
 async function proactiveMessage() {
@@ -323,6 +325,12 @@ window.onload = () => {
   chatHistory.forEach(msg => appendMessage(msg.role, msg.content));
   // 检查主动消息
   if (shouldSendProactive()) proactiveMessage();
+     // 每 1 分钟检查一次，自动主动发消息
+  setInterval(() => {
+    if (shouldSendProactive()) {
+      proactiveMessage();
+    }
+  }, 60000);
   // 打印初始记忆，方便调试
   console.log("📄 初始记忆加载：", memorySystem);
 };
